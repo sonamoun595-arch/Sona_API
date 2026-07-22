@@ -1,67 +1,88 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using APIApplication.Models;
+using Sona_API.Models;
 
-namespace APIApplication.Controllers
+namespace Sona_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AuthorController : ControllerBase
     {
-        private static readonly List<Author> _authors = new List<Author>
+        // In-memory data
+        private static List<Author> authors = new List<Author>()
         {
-            new Author { AuthorId = 1, Name = "F. Scott Fitzgerald", Biography = "American novelist.", BirthDate = new DateTime(1896, 9, 24) },
-            new Author { AuthorId = 2, Name = "Harper Lee", Biography = "American novelist.", BirthDate = new DateTime(1926, 4, 28) },
-            new Author { AuthorId = 3, Name = "George Orwell", Biography = "English novelist.", BirthDate = new DateTime(1903, 6, 25) },
-            new Author { AuthorId = 4, Name = "Jane Austen", Biography = "English novelist.", BirthDate = new DateTime(1775, 12, 16) }
+            new Author().BindAuthor(1, "J.K. Rowling", "Author of Harry Potter", new DateTime(1965, 7, 31)),
+            new Author().BindAuthor(2, "George Orwell", "Author of 1984", new DateTime(1903, 6, 25)),
+            new Author().BindAuthor(3, "Agatha Christie", "Mystery novelist", new DateTime(1890, 9, 15))
         };
 
+        // GET: api/Author
         [HttpGet]
-        public IActionResult GetAuthors()
+        public ActionResult<IEnumerable<Author>> GetAuthors()
         {
-            return Ok(_authors);
+            return Ok(authors);
         }
 
+        // GET: api/Author/1
         [HttpGet("{id}")]
-        public IActionResult GetAuthor(int id)
+        public ActionResult<Author> GetAuthor(int id)
         {
-            var author = _authors.FirstOrDefault(a => a.AuthorId == id);
-            if (author == null) return NotFound();
+            var author = authors.FirstOrDefault(a => a.AuthorId == id);
+
+            if (author == null)
+            {
+                return NotFound("Author not found.");
+            }
+
             return Ok(author);
         }
 
+        // POST: api/Author
         [HttpPost]
-        public IActionResult CreateAuthor([FromBody] Author author)
+        public ActionResult<Author> AddAuthor(Author author)
         {
-            if (author == null) return BadRequest();
-            author.AuthorId = _authors.Max(a => a.AuthorId) + 1;
-            _authors.Add(author);
-            return CreatedAtAction(nameof(GetAuthor), new { id = author.AuthorId }, author);
+            if (authors.Any(a => a.AuthorId == author.AuthorId))
+            {
+                return BadRequest("Author ID already exists.");
+            }
+
+            authors.Add(author);
+
+            return CreatedAtAction(nameof(GetAuthor),
+                new { id = author.AuthorId }, author);
         }
 
+        // PUT: api/Author/1
         [HttpPut("{id}")]
-        public IActionResult UpdateAuthor(int id, [FromBody] Author author)
+        public IActionResult UpdateAuthor(int id, Author updatedAuthor)
         {
-            if (author == null) return BadRequest();
-            var existingAuthor = _authors.FirstOrDefault(a => a.AuthorId == id);
-            if (existingAuthor == null) return NotFound();
+            var author = authors.FirstOrDefault(a => a.AuthorId == id);
 
-            _authors.Remove(existingAuthor);
-            author.AuthorId = id;
-            _authors.Add(author);
+            if (author == null)
+            {
+                return NotFound("Author not found.");
+            }
+
+            author.Name = updatedAuthor.Name;
+            author.Biography = updatedAuthor.Biography;
+            author.BirthDate = updatedAuthor.BirthDate;
+
             return Ok(author);
         }
 
+        // DELETE: api/Author/1
         [HttpDelete("{id}")]
         public IActionResult DeleteAuthor(int id)
         {
-            var author = _authors.FirstOrDefault(a => a.AuthorId == id);
-            if (author == null) return NotFound();
+            var author = authors.FirstOrDefault(a => a.AuthorId == id);
 
-            _authors.Remove(author);
-            return Ok(author);
+            if (author == null)
+            {
+                return NotFound("Author not found.");
+            }
+
+            authors.Remove(author);
+
+            return Ok("Author deleted successfully.");
         }
     }
 }

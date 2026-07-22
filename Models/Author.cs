@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace APIApplication.Models
+namespace Sona_API.Models
 {
     public class Author
     {
@@ -19,6 +19,6 @@ namespace APIApplication.Models
             this.Biography = biography;
             this.BirthDate = birthDate;
             return this;
-        }          
+        }
     }
 }
