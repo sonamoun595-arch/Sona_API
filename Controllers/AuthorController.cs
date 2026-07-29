@@ -1,88 +1,91 @@
 using Microsoft.AspNetCore.Mvc;
-using Sona_API.Models;
+using AuthorAPI.Models;
 
-namespace Sona_API.Controllers
+namespace AuthorAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AuthorController : ControllerBase
     {
-        // In-memory data
-        private static List<Author> authors = new List<Author>()
+        private static List<Author> authors = new()
         {
-            new Author().BindAuthor(1, "J.K. Rowling", "Author of Harry Potter", new DateTime(1965, 7, 31)),
-            new Author().BindAuthor(2, "George Orwell", "Author of 1984", new DateTime(1903, 6, 25)),
-            new Author().BindAuthor(3, "Agatha Christie", "Mystery novelist", new DateTime(1890, 9, 15))
+            new Author
+            {
+                AuthorId = 1,
+                Name = "John Smith",
+                Biography = "ASP.NET Developer",
+                BirthDate = new DateTime(1990, 5, 20),
+                Email = "john@gmail.com"
+            },
+            new Author
+            {
+                AuthorId = 2,
+                Name = "David Lee",
+                Biography = "Software Engineer",
+                BirthDate = new DateTime(1995, 8, 10),
+                Email = "david@gmail.com"
+            }
         };
 
-        // GET: api/Author
+        // GET: api/author
         [HttpGet]
         public ActionResult<IEnumerable<Author>> GetAuthors()
         {
             return Ok(authors);
         }
 
-        // GET: api/Author/1
+        // GET: api/author/1
         [HttpGet("{id}")]
         public ActionResult<Author> GetAuthor(int id)
         {
             var author = authors.FirstOrDefault(a => a.AuthorId == id);
 
             if (author == null)
-            {
-                return NotFound("Author not found.");
-            }
+                return NotFound();
 
             return Ok(author);
         }
 
-        // POST: api/Author
+        // POST: api/author
         [HttpPost]
-        public ActionResult<Author> AddAuthor(Author author)
+        public ActionResult<Author> CreateAuthor(Author author)
         {
-            if (authors.Any(a => a.AuthorId == author.AuthorId))
-            {
-                return BadRequest("Author ID already exists.");
-            }
+            author.AuthorId = authors.Max(a => a.AuthorId) + 1;
 
             authors.Add(author);
 
-            return CreatedAtAction(nameof(GetAuthor),
-                new { id = author.AuthorId }, author);
+            return CreatedAtAction(nameof(GetAuthor), new { id = author.AuthorId }, author);
         }
 
-        // PUT: api/Author/1
+        // PUT: api/author/1
         [HttpPut("{id}")]
-        public IActionResult UpdateAuthor(int id, Author updatedAuthor)
+        public IActionResult UpdateAuthor(int id, Author author)
         {
-            var author = authors.FirstOrDefault(a => a.AuthorId == id);
+            var existing = authors.FirstOrDefault(a => a.AuthorId == id);
 
-            if (author == null)
-            {
-                return NotFound("Author not found.");
-            }
+            if (existing == null)
+                return NotFound();
 
-            author.Name = updatedAuthor.Name;
-            author.Biography = updatedAuthor.Biography;
-            author.BirthDate = updatedAuthor.BirthDate;
+            existing.Name = author.Name;
+            existing.Biography = author.Biography;
+            existing.BirthDate = author.BirthDate;
+            existing.Email = author.Email;
 
-            return Ok(author);
+            return NoContent();
         }
 
-        // DELETE: api/Author/1
+        // DELETE: api/author/1
         [HttpDelete("{id}")]
         public IActionResult DeleteAuthor(int id)
         {
             var author = authors.FirstOrDefault(a => a.AuthorId == id);
 
             if (author == null)
-            {
-                return NotFound("Author not found.");
-            }
+                return NotFound();
 
             authors.Remove(author);
 
-            return Ok("Author deleted successfully.");
+            return NoContent();
         }
     }
 }
